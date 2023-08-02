@@ -1,75 +1,120 @@
-const express = import('express')
-const { shortestWord } = import('./function')
-
-const longestWord = import('./function').longestWord
-const shortest = import('./function').shortestWord
-const wordLength = import('./function').wordLength
-const phoneBill = import('./function').totalPhoneBill
-const enoughAirtime = import('./function').enoughAirTime
+import { longestWord, wordLengths, shortestWord } from './word-game.js';
+import { totalPhoneBill } from './totalPhoneBill.js';
+import { enoughAirtime } from './enough-airtime.js';
+import express from 'express';
 
 const app = express();
-    
-app.use(express.static('public'))    
 
-app.get('/api/word_game',(req,res)=>{
-    const {sentence} = req.query
+// declareconfigurable port number
+const PORT = process.env.PORT || 4009;
 
-    if(!sentence) res.json({
-        error : 'sentence not found!'
-    })
+//
+app.use(express.json());
 
-    res.json({
-        "message" : sentence.toUpperCase(),
-        "longestWord": longestWord(sentence),
-        "shortestWord" : shortest(sentence),
-        "sum": wordLength(sentence)
-    })
-})
+app.use(express.static('public'));
 
-let callPrice = 2.75
-let smsPrice = 0.65
 
-app.get('/api/phonebill/prices', (req, res) => {
+//game secton
+app.get('/api/word_game', function (req, res) {
+    const sentence = req.query.sentence;
 
-    res.json({
-        call : callPrice,
-        sms : smsPrice
-    })
-})
-
-app.post('/api/phonebill/total',(req,res)=>{
-    const {bill} = req.query
-    res.json({
-        "total" : phoneBill(bill,callPrice,smsPrice)
-    })
-})
-
-app.post('/api/phonebill/price', (req, res) => {
-
-    const type = req.body.type
-    const price = req.body.price
-
-    if(type === 'sms') {
-        smsPrice = price
-    } 
-    else if(type === 'call') {
-        callPrice = price
+    if (!sentence) {
+        return res.json({
+            error: 'No sentence entered...'
+        })
     }
 
-    res.json ({
-        type, price
+
+    res.json({
+        longestWord: `${longestWord(sentence)}`,
+        shortestWord: `${shortestWord(sentence)}`,
+        wordLengths: `${wordLengths(sentence)}`,
     })
 });
 
-app.post('/api/enough',(req,res)=>{
-    const {usage,airtimeAvailable} = req.query
+// the total phone bill
+
+
+const types = {
+    "sms": '',
+    "call": ''
+}
+
+const bills = {
+    bill : 'call, sms, sms, call',
+    usage : 'call, sms'
+}
+
+//show the prices
+app.get('/api/phonebill/prices', function (req, res) {
+    const type = req.query.type;
+    const price = req.query.price;
+
     res.json({
-        "results" : enoughAirtime(usage,airtimeAvailable)
+        "type": type,
+        "price": price
     })
 })
 
-const PORT = process.env.PORT || 3007;
 
-app.listen(PORT,()=>{
-    console.log('app running on port 3007')
+
+app.post('/api/phonebill/price', function (req, res) {
+
+    // add and entry to our types map
+    const type = req.body.type;
+    types[type] = req.body.types
+
+    res.json({
+        status: 'success',
+        message: `Added a bill for ${type}`
+    });
+
+});
+
+app.post('/api/phonebill/total', function(req, res){
+    const bill = req.body.bill;
+    bills[bill] = req.body.bills
+
+
+    res.json({
+        status: 'success',
+        message: `Added a bill for ${bill}`
+    });
+    
 })
+
+app.get('/api/phonebill/total', function(req, res){
+    const bill = req.query.bill;    
+
+    res.json({
+        bill: totalPhoneBill(bill)
+    })
+})
+
+
+app.post('/api/enough', function(req, res){
+    const usage = req.body.usage;
+    const available = req.body.available;
+
+    res.json({
+        status: 'success',
+        message: `Added a ${usage} for ${available}`
+    });
+    
+})
+
+app.get('/api/enough', function(req, res){
+    const usage = req.query.usage;
+    const available = req.query.available;
+
+    res.json({
+        result : enoughAirtime(usage, available)
+    });
+    
+})
+
+
+// run the server
+app.listen(PORT, function () {
+    console.log(`App running on ${PORT}`)
+});
