@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="//unpkg.com/alpinejs" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.27.2/axios.min.js"
+        integrity="sha512-odNmoc1XJy5x1TMVMdC7EMs3IVdItLPlCeL5vSUPN2llYKMJ2eByTTAIiiuqLg+GdNr9hF6z81p27DArRFKT7A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+
+<body>
+    <h1>widget home page!!!</h1>
+    <div x-data="{
+        sentence:'',
+        longestWord: '',
+        shortestWord: '',
+        wordLength: '',
+        checkSentence(){
+            axios.get(`/api/word_game?sentence=${this.sentence}`)
+            .then((result)=>{
+                console.log(result.data);
+                this.longestWord = result.data.longestWord;
+                this.shortestWord = result.data.shortestWord;
+                this.wordLength = result.data.sum;
+                console.log(this.wordLength)
+            });
+        }
+    }">
+        <textarea x-model="sentence" cols="30" rows="5"></textarea>
+
+        <div>
+            <button x-on:click="checkSentence">check word</button>
+        </div>
+
+        <div>
+            <div>
+                Longest word: <span x-text="longestWord"></span>
+            </div>
+            <div>
+                shortest word: <span x-text="shortestWord"></span>
+            </div>
+            <div>
+                wordLength: <span x-text="wordLength"></span>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="widget">
+        <h2>Telephone Bill Function</h2>
+        <p><strong><h4>game instructions:</h4></strong>  Users enter the phone string and press a button to see the total phone bill amount on the screen.</p>
+        <div x-data="{
+            items:'',
+            itemMessage:'',
+            totalCost: '0.00'
+            itemFinder(){
+                axios.get(`/api/phonebill/total?bill=${this.items}`)
+                    .then(function(result){
+                        this.itemMessage=totalPhoneBill(this.items)
+                        console.log(result.data)
+                    })
+            }
+        }">
+            
+            <div class="input">
+                <label for="noItems">Telephone bill Items:</label>
+                <input type="text" name="noItems" id="noItems" x-model="items">
+            </div>
+            <div class="message" x-text="itemMessage" style="background-color:green ;"></div>
+            <button x-on:click="itemFinder">Find Items</button>
+        </div>
+    </div>
+ 
+  
+</body>
+
+</html>
